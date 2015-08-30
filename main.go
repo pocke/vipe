@@ -8,48 +8,55 @@ import (
 	"os/exec"
 )
 
+func main() {
+	fname, err := InitTempFile()
+	if err != nil {
+		fail(err)
+	}
+	defer os.Remove(fname)
+
+	err = Vim(fname)
+	if err != nil {
+		fail(err)
+	}
+
+	err = WriteResult(fname)
+	if err != nil {
+		fail(err)
+	}
+}
+
 func fail(err error) {
 	fmt.Fprintln(os.Stderr, err)
 	os.Exit(1)
 }
 
-func main() {
+func Vim(fname string) error {
+	cmd := exec.Command("gvim", "--nofork", fname)
+	return cmd.Run()
+}
+
+func InitTempFile() (string, error) {
 	b, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
-		fail(err)
+		return "", err
 	}
 
 	f, err := ioutil.TempFile(os.TempDir(), "vipe-")
 	if err != nil {
-		fail(err)
+		return "", err
 	}
-	defer func() {
-		f.Close()
-		os.Remove(f.Name())
-	}()
+	defer f.Close()
 
 	_, err = f.Write(b)
-	if err != nil {
-		fail(err)
-	}
-	f.Close()
-
-	err = Vim(f.Name())
-	if err != nil {
-		fail(err)
-	}
-
-	res, err := os.Open(f.Name())
-	if err != nil {
-		fail(err)
-	}
-	_, err = io.Copy(os.Stdout, res)
-	if err != nil {
-		fail(err)
-	}
+	return f.Name(), err
 }
 
-func Vim(fname string) error {
-	cmd := exec.Command("gvim", "--nofork", fname)
-	return cmd.Run()
+func WriteResult(fname string) error {
+	res, err := os.Open(fname)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(os.Stdout, res)
+	return err
 }
