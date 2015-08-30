@@ -22,7 +22,7 @@ Usage
 
 ```sh
 $ cat hoge | vipe | sh
-$ cat hoge | vipe -g   # If use GVim
+$ cat hoge | vipe -g | sh   # If use GVim
 ```
 
 
