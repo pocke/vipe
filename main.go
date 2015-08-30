@@ -41,16 +41,8 @@ func Vim(fname string, gui bool) error {
 	if gui {
 		cmd = exec.Command("gvim", "--nofork", fname)
 	} else {
-		in, err := os.Open("/dev/tty") // XXX: What's best way...?
-		if err != nil {
-			return err
-		}
-		defer in.Close()
-
-		cmd = exec.Command("vim", fname)
-		cmd.Stdin = in
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		// Workaround
+		cmd = exec.Command("bash", "-c", fmt.Sprintf("vim %s < /dev/tty > /dev/tty", fname))
 	}
 	return cmd.Run()
 }

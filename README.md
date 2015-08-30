@@ -30,4 +30,3 @@ TODO
 ------
 
 - Screen cast.
-- Don't work without GUI
