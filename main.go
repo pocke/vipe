@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,13 +10,17 @@ import (
 )
 
 func main() {
+	var gui bool
+	flag.BoolVar(&gui, "g", false, "Use GVim")
+	flag.Parse()
+
 	fname, err := InitTempFile()
 	if err != nil {
 		fail(err)
 	}
 	defer os.Remove(fname)
 
-	err = Vim(fname)
+	err = Vim(fname, gui)
 	if err != nil {
 		fail(err)
 	}
@@ -31,8 +36,22 @@ func fail(err error) {
 	os.Exit(1)
 }
 
-func Vim(fname string) error {
-	cmd := exec.Command("gvim", "--nofork", fname)
+func Vim(fname string, gui bool) error {
+	var cmd *exec.Cmd
+	if gui {
+		cmd = exec.Command("gvim", "--nofork", fname)
+	} else {
+		in, err := os.Open("/dev/tty") // XXX: What's best way...?
+		if err != nil {
+			return err
+		}
+		defer in.Close()
+
+		cmd = exec.Command("vim", fname)
+		cmd.Stdin = in
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 	return cmd.Run()
 }
 
