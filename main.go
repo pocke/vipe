@@ -10,30 +10,30 @@ import (
 )
 
 func main() {
+	err := Main()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func Main() error {
 	var gui bool
 	flag.BoolVar(&gui, "g", false, "Use GVim")
 	flag.Parse()
 
 	fname, err := InitTempFile()
 	if err != nil {
-		fail(err)
+		return err
 	}
 	defer os.Remove(fname)
 
 	err = Vim(fname, gui)
 	if err != nil {
-		fail(err)
+		return err
 	}
 
-	err = WriteResult(fname)
-	if err != nil {
-		fail(err)
-	}
-}
-
-func fail(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
+	return WriteResult(fname)
 }
 
 func Vim(fname string, gui bool) error {
